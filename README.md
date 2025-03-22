@@ -1,6 +1,8 @@
 # Шлюз BLE-UDP через WiFi
 
-Шлюз на базе мини платы ESP32-C3 Super Mini (с Aliexpress).
+Шлюз на базе мини платы ESP32-C3 Super Mini (с Aliexpress)
+
+![ESP32-C3](https://media.au.ru/imgs/400x800/92c28a5f02a39660bf11631a80d64fc7/)
 
 В коде необходимо указать:
 - Имя WiFi сети и пароль
