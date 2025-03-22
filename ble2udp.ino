@@ -12,7 +12,7 @@ const char* hostname = "BLE2UDPGW01";
 
 // UDP настройки
 // Сервер UDP и порт
-const char* udpServer = "10.100.0.75";
+const char* udpServer = "my-udp-server.local";
 const int udpPort = 12345;
 
 WiFiUDP udp;
