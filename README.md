@@ -20,6 +20,37 @@
 {"Mac":"28:2b:b9:5b:7f:70","Rssi":-99}
 ```
 
+Пакет BLE для C# выглядит так:
+
+```cs
+public class BlePacket
+{
+    /// <summary>
+    /// MAC адрес устройства
+    /// </summary>
+    public string Mac { get; set; }
+    
+    /// <summary>
+    /// Имя устройства (если имеется)
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Name { get; set; }
+    
+    /// <summary>
+    /// Сила сигнала (RSSI)
+    /// </summary>
+    public int Rssi { get; set; }
+
+    /// <summary>
+    /// Данные (если имеется)
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Data { get; set; }
+}
+```
+
+
+
 Микро UDP сервер для тестирования:
 
 ```cs
