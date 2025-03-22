@@ -6,18 +6,19 @@
 
 В коде необходимо указать:
 - Имя WiFi сети и пароль
-- Имя хоста шлюза
-- IP (или DNS имя) и порт UDP сервера.
+- IP (или имя хоста) и порт UDP сервера.
+Имя хоста передается в поле `gate` пакета данных.
 
 Шлюз отправляет данные в формате JSON:
 
 ```json
-{"Mac":"48:d5:60:f9:03:e1","Rssi":-86,"Data":"060001092002949283710F1412B54B2CEC18F1D513E9DB24D89253AE23"}
-```
-Без данных:
-
-```json
-{"Mac":"28:2b:b9:5b:7f:70","Rssi":-99}
+{
+    "gate": "esp32c3-725FAC",
+    "name": "sampleBLE",
+    "mac": "48:d5:60:f9:03:e1",
+    "rssi": -86,
+    "data": "060001092002949283710F1412B54B2CEC18F1D513E9DB24D89253AE23"
+}
 ```
 
 Пакет BLE для C# выглядит так:
@@ -26,30 +27,38 @@
 public class BlePacket
 {
     /// <summary>
+    /// Имя шлюза
+    /// </summary>
+    [JsonPropertyName("gate")]
+    public string Gate { get; set; }
+
+    /// <summary>
     /// MAC адрес устройства
     /// </summary>
+    [JsonPropertyName("mac")]
     public string Mac { get; set; }
     
     /// <summary>
     /// Имя устройства (если имеется)
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
-    
+
     /// <summary>
     /// Сила сигнала (RSSI)
     /// </summary>
+    [JsonPropertyName("rssi")]
     public int Rssi { get; set; }
 
     /// <summary>
     /// Данные (если имеется)
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("data")]
     public string? Data { get; set; }
 }
 ```
-
-
 
 Микро UDP сервер для тестирования:
 
