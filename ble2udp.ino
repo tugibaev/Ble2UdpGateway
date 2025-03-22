@@ -5,38 +5,33 @@
 #include <BLEAdvertisedDevice.h>
 #include <ArduinoJson.h>
 
-// Wi-Fi настройки
 const char* ssid = "MyWiFi";
-const char* password = "012345678";
-const char* hostname = "BLE2UDPGW01";
+const char* password = "MyPassword";
+String hostname = "";
 
-// UDP настройки
-// Сервер UDP и порт
-const char* udpServer = "my-udp-server.local";
+const char* udpServer = "example.com";
 const int udpPort = 12345;
 
 WiFiUDP udp;
 
-// BLE настройки
-int scanTime = 5; // Время сканирования в секундах
+int scanTime = 5;
 BLEScan* pBLEScan;
 
 void sendToUDPServer(String data);
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
   void onResult(BLEAdvertisedDevice advertisedDevice) {
-    StaticJsonDocument<200> doc;
-    // MAC-адрес
-    doc["Mac"] = advertisedDevice.getAddress().toString().c_str();
-    // Имя устройства
+    StaticJsonDocument<256> doc;
+    if (hostname.length() > 0){
+        doc["gate"] = hostname;
+    }    
+    doc["mac"] = advertisedDevice.getAddress().toString().c_str();    
     String name = String(advertisedDevice.getName().c_str());
     if (name.length() > 0){
-      doc["Name"] = name;
+      doc["name"] = name;
     }        
-    // RSSI
-    doc["Rssi"] = advertisedDevice.getRSSI();
-    // Manufacturer Data
-    String mfrData = advertisedDevice.getManufacturerData(); // String, а не std::string
+    doc["rssi"] = advertisedDevice.getRSSI();
+    String mfrData = advertisedDevice.getManufacturerData();
     String mfrDataHex = "";
     if (mfrData.length() > 0) {
       char hex[3];
@@ -48,8 +43,8 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
       mfrDataHex = "";
     }
     if (mfrDataHex.length() > 0){
-      doc["Data"] = mfrDataHex;
-    }    
+      doc["data"] = mfrDataHex;
+    }
     String jsonData;
     serializeJson(doc, jsonData);
     sendToUDPServer(jsonData);
@@ -59,39 +54,51 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 void setupWiFi() {
   WiFi.begin(ssid, password);
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) { // Ограничение попыток
-    delay(500);
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(1000);
     attempts++;
-  }  
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    hostname = WiFi.getHostname();
+  } else {
+    WiFi.disconnect();
+    delay(5000);
+  }
 }
+
 void checkAndReconnectWiFi() {
   if (WiFi.status() != WL_CONNECTED) {
     WiFi.disconnect();
-    setupWiFi(); // Повторная попытка подключения
+    delay(5000);
+    setupWiFi();
   }
 }
+
 void setupBLE() {
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(false);
 }
+
 void sendToUDPServer(String data) {
-  if (WiFi.status() == WL_CONNECTED) { // Отправка только при активном соединении
+  if (WiFi.status() == WL_CONNECTED) {
     udp.beginPacket(udpServer, udpPort);
     udp.print(data);
     udp.endPacket();
   }  
 }
+
 void setup() {
   setupWiFi();
   setupBLE();
 }
+
 void loop() {
-  checkAndReconnectWiFi(); // Проверка и переподключение Wi-Fi
+  checkAndReconnectWiFi();
   if (WiFi.status() == WL_CONNECTED) {
-    pBLEScan->start(scanTime, false); // Запуск сканирования только при Wi-Fi
+    pBLEScan->start(scanTime, false);
   }   
-  delay(100); // Пауза перед следующим сканированием
-  pBLEScan->clearResults(); // Очистка результатов
+  delay(100);
+  pBLEScan->clearResults();
 }
